@@ -1,0 +1,16 @@
+{
+    "version": "0.1",
+    "images": [
+        {
+            "name": "LaTeX",
+            "image": "docker.io/texlive/texlive:latest",
+            "remoteUser": ""
+        },
+        {
+            "name": "Ubuntu",
+            "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+            "remoteUser": "vscode"
+        }
+    ]
+}
+
