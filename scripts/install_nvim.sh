@@ -1,4 +1,6 @@
-#!/bin/bash
+#########################
+# Neovim Setup          #
+#########################
 
 # 0. Get pre-requisites
 sudo apt-get install -y tree-sitter-cli

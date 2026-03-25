@@ -1,7 +1,7 @@
 import json
 
 
-def get_selected_modules(selected_modules: list[str]) -> dict:
+def get_selected_modules_data(selected_modules: list[str]) -> dict:
     if "Default" not in selected_modules:
         selected_modules.append("Default")  # Ensure default attributes are applied 
     loaded_modules = {
@@ -131,17 +131,29 @@ def concat_devcontainer(selected_modules_data: dict) -> str:
 
     return json.dumps(devcontainer_dict, indent=4)
 
+def concat_setup_script(selected_modules_data: dict) -> str:
+    setup_script_string = ""
+
+    for script in selected_modules_data["scripts"]:
+        with open(f"scripts/{script}", "r") as file:
+            script_contents = file.read()
+        
+        setup_script_string += f"{script_contents}\n"
+    
+    return setup_script_string.rstrip()
+
 
 def main(project_name: str, selected_name: str, selected_modules: list):
     selected_image, build_prerequisites = get_selected_image(selected_name)
-    selected_modules_data = get_selected_modules(selected_modules)
+    selected_modules_data = get_selected_modules_data(selected_modules)
     
     build_commands = get_build_commands(build_prerequisites) 
     
     dockerfile_string = concat_dockerfile(selected_image, selected_modules_data, build_commands)
     devcontainer_string = concat_devcontainer(selected_modules_data)
-    
-    return (dockerfile_string, devcontainer_string)
+    setup_script_string = concat_setup_script(selected_modules_data)
+
+    return (dockerfile_string, devcontainer_string, setup_script_string)
 
 
 if __name__ == "__main__":
@@ -155,7 +167,8 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    dockerfile_string, devcontainer_string = main(project_name=args.project_name, selected_name=args.image, selected_modules=args.modules)
+    dockerfile_string, devcontainer_string, setup_script_string = main(project_name=args.project_name, selected_name=args.image, selected_modules=args.modules)
 
     print(dockerfile_string)
     print(devcontainer_string)
+    print(setup_script_string)

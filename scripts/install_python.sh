@@ -1,4 +1,6 @@
-#!/bin/bash
+#########################
+# Python Setup          #
+#########################
 
 # Create virtual environment if it doesn't exist
 if [ ! -d ".venv" ]; then

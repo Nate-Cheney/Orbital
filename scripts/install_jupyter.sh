@@ -1,4 +1,6 @@
-#!/bin/bash
+#########################
+# Jupyter Setup         # 
+#########################
 
 # Create venv if it doesn't exist
 if [ ! -d ".venv" ]; then
