@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devcontainer Generator</title>
+    <style>
+        body { font-family: sans-serif; margin: 2rem; background: #f9f9f9; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
+        input[type="text"], select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem; }
+        .module-item { display: flex; align-items: center; }
+        .module-item input { margin-right: 0.5rem; }
+        .btn { display: inline-block; background: #007bff; color: #fff; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+        .btn:hover { background: #0056b3; }
+        pre { background: #2d2d2d; color: #ccc; padding: 1rem; border-radius: 4px; overflow-x: auto; font-family: monospace; white-space: pre-wrap; }
+        .output-section { margin-top: 2rem; }
+        .output-header { display: flex; justify-content: space-between; align-items: center; }
+        .copy-btn { background: #555; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; }
+        .copy-btn:hover { background: #777; }
+        .error { color: red; font-weight: bold; }
+        /* Hide outputs initially */
+        #output-container { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Devcontainer Generator</h1>
+    <form id="generator-form">
+        <div class="form-group">
+            <label for="project-name">Project Name</label>
+            <input type="text" id="project-name" name="project_name" required placeholder="e.g. My Project">
+        </div>
+
+        <div class="form-group">
+            <label for="image-select">Base Image</label>
+            <select id="image-select" name="selected_name" required>
+                <option value="" disabled selected>Loading...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Modules</label>
+            <div class="modules-grid" id="modules-container">
+                <!-- Modules will be populated here -->
+                <div>Loading...</div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn">Generate Configuration</button>
+        <span id="status-message" style="margin-left: 1rem;"></span>
+    </form>
+
+    <div id="output-container" class="output-section">
+        <div class="output-header">
+            <h2>Dockerfile</h2>
+            <button class="copy-btn" onclick="copyText('dockerfile-output', this)">Copy</button>
+        </div>
+        <pre><code id="dockerfile-output"></code></pre>
+
+        <div class="output-header">
+            <h2>devcontainer.json</h2>
+            <button class="copy-btn" onclick="copyText('devcontainer-output', this)">Copy</button>
+        </div>
+        <pre><code id="devcontainer-output"></code></pre>
+    </div>
+</div>
+
+<script>
+    // Fetch options on page load
+    fetch('/api/options')
+        .then(response => response.json())
+        .then(data => {
+            // Populate images
+            const imageSelect = document.getElementById('image-select');
+            imageSelect.innerHTML = '<option value="" disabled>Select an image...</option>';
+            data.images.forEach(img => {
+                const option = document.createElement('option');
+                option.value = img;
+                option.textContent = img;
+                if (img === 'Ubuntu') {
+                    option.selected = true;
+                }
+                imageSelect.appendChild(option);
+            });
+
+            // Populate modules
+            const modulesContainer = document.getElementById('modules-container');
+            modulesContainer.innerHTML = '';
+            data.modules.forEach(mod => {
+                const label = document.createElement('label');
+                label.className = 'module-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'selected_modules';
+                checkbox.value = mod;
+                
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(mod));
+                
+                modulesContainer.appendChild(label);
+            });
+        })
+        .catch(err => {
+            console.error('Error fetching options:', err);
+            document.getElementById('modules-container').innerHTML = '<span class="error">Failed to load options</span>';
+        });
+
+    // Handle form submission
+    document.getElementById('generator-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const statusMsg = document.getElementById('status-message');
+        statusMsg.textContent = 'Generating...';
+        statusMsg.className = '';
+        
+        const projectName = document.getElementById('project-name').value;
+        const selectedName = document.getElementById('image-select').value;
+        
+        // Get all selected checkboxes for modules
+        const selectedModules = [];
+        document.querySelectorAll('input[name="selected_modules"]:checked').forEach(cb => {
+            selectedModules.push(cb.value);
+        });
+
+        const payload = {
+            project_name: projectName,
+            selected_name: selectedName,
+            selected_modules: selectedModules
+        };
+
+        fetch('/api/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(res => {
+            if (res.status === 200) {
+                document.getElementById('dockerfile-output').textContent = res.body.dockerfile;
+                document.getElementById('devcontainer-output').textContent = res.body.devcontainer;
+                document.getElementById('output-container').style.display = 'block';
+                statusMsg.textContent = 'Success!';
+                statusMsg.style.color = 'green';
+            } else {
+                statusMsg.textContent = 'Error: ' + (res.body.error || 'Unknown error');
+                statusMsg.className = 'error';
+                document.getElementById('output-container').style.display = 'none';
+            }
+        })
+        .catch(err => {
+            console.error('Generation flow error:', err);
+            statusMsg.textContent = 'Error: Failed to fetch';
+            statusMsg.className = 'error';
+        });
+    });
+
+    // Copy to clipboard helper
+    function copyText(elementId, btn) {
+        const text = document.getElementById(elementId).textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        });
+    }
+</script>
+
+</body>
+</html>

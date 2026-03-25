@@ -1,20 +1,25 @@
 import json
 
 
-def get_selected_image(selected_name: str) -> tuple(str, list(str)):
+def get_selected_image(selected_name: str) -> tuple[str, list[str]]:
     with open("images.json", "r") as file:
         images = json.load(file)
     
+    selected_image = ""
+    image_scripts = []
+
     for image in images["images"]:
         if image.get("name") == selected_name:
-            selected_image = image.get("image")
-            image_scripts = image.get("scripts")
+            selected_image = image.get("image", "")
+            image_scripts = image.get("scripts", [])
+            break
 
     return (selected_image, image_scripts)
 
 
-def get_selected_modules(selected_modules: list):
-    selected_modules.append("Default")  # Ensure default attributes are applied 
+def get_selected_modules(selected_modules: list[str]) -> dict:
+    if "Default" not in selected_modules:
+        selected_modules.append("Default")  # Ensure default attributes are applied 
     loaded_modules = {
         "devcontainer": {
             "runArgs": [],
@@ -51,6 +56,7 @@ def get_selected_modules(selected_modules: list):
             # Extend lists 
             loaded_modules["devcontainer"]["runArgs"].extend(dev_config.get("runArgs", []))
             loaded_modules["devcontainer"]["extensions"].extend(dev_config.get("extensions", []))
+            loaded_modules["devcontainer"]["mounts"].extend(dev_config.get("mounts", []))
             loaded_modules["scripts"].extend(module.get("scripts", []))
             loaded_modules["environment"].extend(module.get("environment", []))
             
@@ -61,6 +67,7 @@ def get_selected_modules(selected_modules: list):
     # Deduplicate items
     loaded_modules["devcontainer"]["runArgs"] = list(dict.fromkeys(loaded_modules["devcontainer"]["runArgs"]))
     loaded_modules["devcontainer"]["extensions"] = list(dict.fromkeys(loaded_modules["devcontainer"]["extensions"]))
+    loaded_modules["devcontainer"]["mounts"] = list(dict.fromkeys(loaded_modules["devcontainer"]["mounts"]))
     loaded_modules["scripts"] = list(dict.fromkeys(loaded_modules["scripts"]))
     loaded_modules["environment"] = list(dict.fromkeys(loaded_modules["environment"]))
     
@@ -71,7 +78,7 @@ def get_selected_modules(selected_modules: list):
     return loaded_modules
 
 
-def concat_dockerfile(selected_image: str, selected_modules_data: str, image_scripts: str) -> str:
+def concat_dockerfile(selected_image: str, selected_modules_data: dict, image_scripts: list[str]) -> str:
     copy_script_string = ""
     run_script_string = ""
     for script in image_scripts:
@@ -95,7 +102,7 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
     return dockerfile_string
 
 
-def concat_devcontainer(selected_modules_data: list) -> str:
+def concat_devcontainer(selected_modules_data: dict) -> str:
     devcontainer_dict = {
         "name": "Project Name",
         "build": {
@@ -131,7 +138,15 @@ def main(project_name: str, selected_name: str, selected_modules: list):
 
 
 if __name__ == "__main__":
-    dockerfile_string, devcontainer_string = main(project_name="Test", selected_name="Ubuntu", selected_modules=["SSH Agent", "Intel Arc GPU", "Python", "Jupyter Notebook"])
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate Devcontainer Configurations")
+    parser.add_argument("--project-name", "-p", default="Test", help="Name of the project")
+    parser.add_argument("--image", "-i", default="Ubuntu", help="Selected image name")
+    parser.add_argument("--modules", "-m", nargs="+", default=["SSH Agent", "Intel Arc GPU", "Python", "Jupyter Notebook"], help="List of selected modules")
+    
+    args = parser.parse_args()
+    
+    dockerfile_string, devcontainer_string = main(project_name=args.project_name, selected_name=args.image, selected_modules=args.modules)
 
     print(f"DOCKERFILE:\n{dockerfile_string}END OF DOCKERFILE")
     print(f"DEVCONTAINER.JSON:\n{devcontainer_string}\nEND OF DEVCONTAINER.JSON")
