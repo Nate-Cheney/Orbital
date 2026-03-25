@@ -2,6 +2,20 @@
     "version": "0.1",
     "modules": [
         {
+            "name": "Default",
+            "category": "Default",
+            "description": "Default attributes for all devcontainers",
+            "devcontainer": {
+                "runArgs": [],
+                "features": {},
+                "extensions": [],
+                "settings": {
+                    "workbench.colorTheme": "Default Dark Modern",
+                    "workbench.sideBar.location": "right"
+                }
+            }
+        },
+        {
             "name": "Intel Arc GPU",
             "category": "Hardware",
             "description": "Attaching an Intel Arc GPU & installing necessary drivers",
@@ -42,9 +56,7 @@
                     "ms-toolsai.vscode-jupyter-powertoys"
                 ],
                 "settings": {
-                    "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
-                    "workbench.colorTheme": "Default Dark Modern",
-                    "workbench.sideBar.location": "right"
+                    "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python"
                 }
             },
             "scripts": [
@@ -93,6 +105,6 @@
             "scripts": [
                 "install_python.sh"
             ]
-        },
+        }
     ]
 }

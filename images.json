@@ -4,12 +4,14 @@
         {
             "name": "LaTeX",
             "image": "docker.io/texlive/texlive:latest",
-            "remoteUser": ""
+            "remoteUser": "",
+            "scripts": ["install_debian_prereq.sh"]
         },
         {
             "name": "Ubuntu",
             "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
-            "remoteUser": "vscode"
+            "remoteUser": "vscode",
+            "scripts": ["install_debian_prereq.sh"]
         }
     ]
 }
