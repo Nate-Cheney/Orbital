@@ -22,9 +22,8 @@ def get_selected_modules(selected_modules: list):
             "extensions": [],
             "settings": {}
         },
-        "scripts": [
-
-        ]
+        "scripts": [],
+        "environment": []
     }
 
     with open("modules.json") as file:
@@ -43,23 +42,52 @@ def get_selected_modules(selected_modules: list):
             # Update dictionaries (features and settings)
             loaded_modules["devcontainer"]["features"].update(dev_config.get("features", {}))
             loaded_modules["devcontainer"]["settings"].update(dev_config.get("settings", {}))
+            loaded_modules["devcontainer"]["environment"].update(dev_config.get("environment", {}))
 
     # Deduplicate items
     loaded_modules["devcontainer"]["runArgs"] = list(dict.fromkeys(loaded_modules["devcontainer"]["runArgs"]))
     loaded_modules["devcontainer"]["extensions"] = list(dict.fromkeys(loaded_modules["devcontainer"]["extensions"]))
     loaded_modules["scripts"] = list(dict.fromkeys(loaded_modules["scripts"]))
+    loaded_modules["environment"] = list(dict.fromkeys(loaded_modules["environment"]))
     
     return loaded_modules
 
 
-if __name__ == "__main__":
-    selected_image, image_scripts = get_selected_image("Ubuntu")
+def main(selected_name: str, selected_modules: list(str)):
+    PROJECT_NAME = "test"
+    selected_image, image_scripts = get_selected_image(selected_name)
+    selected_modules = get_selected_modules(selected_modules)
 
-    # Demo output
-    print(selected_image)
+    copy_script_string = ""
+    run_script_string = ""
+
     for script in image_scripts:
-        print(script)
+        copy_script_string += f"COPY scripts/{script} .\n"
+        run_script_string += f"RUN ./scripts/{script}\n"
 
-    selected_modules = ["Intel Arc GPU", "Jupyter Notebook"]  # Test input
-    print(get_selected_modules(selected_modules))
+    dockerfile=f"""FROM {selected_image}
 
+{copy_script_string}
+{run_script_string}
+# Passwordless sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+"""
+    print(f"DOCKERFILE:\n{dockerfile}END OF DOCKERFILE\n")
+
+
+    devcontainer=f"""{{
+    "name": "{PROJECT_NAME}",
+    "build": {{
+        "context": "..",
+        "dockerfile": "Dockerfile"
+    }},
+    {selected_modules}
+}}\n"""
+    print(f"DEVCONTAINER.JSON:\n{devcontainer} \nEND OF DEVCONTAINER.JSON")
+
+
+if __name__ == "__main__":
+    #selected_image, image_scripts = get_selected_image("Ubuntu")
+    #selected_modules = get_selected_modules(["Intel Arc GPU", "Jupyter Notebook"])
+
+    main(selected_name="Ubuntu", selected_modules=["Intel Arc GPU", "Python", "Jupyter Notebook"])

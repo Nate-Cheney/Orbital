@@ -13,7 +13,9 @@
                     "workbench.colorTheme": "Default Dark Modern",
                     "workbench.sideBar.location": "right"
                 }
-            }
+            },
+            "scripts": [],
+            "environment": []
         },
         {
             "name": "Intel Arc GPU",
@@ -31,6 +33,11 @@
             },
             "scripts": [
                 "install_arc_gpu.sh"
+            ],
+            "environment": [
+                "SYCL_DEVICE_FILTER=level_zero:gpu",
+                "ZES_ENABLE_SYSMAN=0",
+                "SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=1"
             ]
         },
         {
@@ -61,7 +68,8 @@
             },
             "scripts": [
                 "install_jupyter.sh"
-            ]
+            ],
+            "environment": []
         },
         {
             "name": "CLI Dev Apps",
@@ -81,7 +89,8 @@
             "scripts": [
                 "install_nvim.sh",
                 "install_tmux.sh"
-            ]
+            ],
+            "environment": []
         },
         {
             "name": "Python",
@@ -104,7 +113,8 @@
             },
             "scripts": [
                 "install_python.sh"
-            ]
+            ],
+            "environment": []
         }
     ]
 }
