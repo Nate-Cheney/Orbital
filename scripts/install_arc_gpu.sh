@@ -1,4 +1,6 @@
-#!/bin/bash
+#########################
+# Intel Arc GPU Setup   #
+#########################
 
 # Add Intel's official Canonical PPA for Ubuntu 24.04 Battlemage drivers
 add-apt-repository -y ppa:kobuk-team/intel-graphics && \
