@@ -14,10 +14,13 @@ def get_selected_image(selected_name: str) -> tuple(str, list(str)):
 
 
 def get_selected_modules(selected_modules: list):
-    selected_modules.append("Default")  # Ensure default attributes are appended
+    selected_modules.append("Default")  # Ensure default attributes are applied 
     loaded_modules = {
         "devcontainer": {
             "runArgs": [],
+            "mounts": [],
+            "postCreateCommand": "",
+            "postStartCommand": "",
             "features": {},
             "extensions": [],
             "settings": {}
@@ -26,6 +29,9 @@ def get_selected_modules(selected_modules: list):
         "environment": []
     }
 
+    postCreateCommands = [] 
+    postStartCommands = []
+
     with open("modules.json") as file:
         modules = json.load(file)
 
@@ -33,16 +39,24 @@ def get_selected_modules(selected_modules: list):
         if module.get("name") in selected_modules:
             # Extract the devcontainer object from the current module
             dev_config = module.get("devcontainer", {})
-            
-            # Extend lists (runArgs, extensions, and scripts)
+          
+            # Extract the post commands to a list 
+            createCmd = dev_config.get("postCreateCommand")
+            if createCmd:
+                postCreateCommands.append(createCmd)
+            startCmd = dev_config.get("postStartCommand")
+            if startCmd:
+                postStartCommands.append(startCmd)
+
+            # Extend lists 
             loaded_modules["devcontainer"]["runArgs"].extend(dev_config.get("runArgs", []))
             loaded_modules["devcontainer"]["extensions"].extend(dev_config.get("extensions", []))
             loaded_modules["scripts"].extend(module.get("scripts", []))
+            loaded_modules["environment"].extend(module.get("environment", []))
             
-            # Update dictionaries (features and settings)
+            # Update dictionaries 
             loaded_modules["devcontainer"]["features"].update(dev_config.get("features", {}))
             loaded_modules["devcontainer"]["settings"].update(dev_config.get("settings", {}))
-            loaded_modules["devcontainer"]["environment"].update(dev_config.get("environment", {}))
 
     # Deduplicate items
     loaded_modules["devcontainer"]["runArgs"] = list(dict.fromkeys(loaded_modules["devcontainer"]["runArgs"]))
@@ -50,44 +64,74 @@ def get_selected_modules(selected_modules: list):
     loaded_modules["scripts"] = list(dict.fromkeys(loaded_modules["scripts"]))
     loaded_modules["environment"] = list(dict.fromkeys(loaded_modules["environment"]))
     
+    # Join command lists
+    loaded_modules["devcontainer"]["postCreateCommand"] = " && ".join(postCreateCommands)
+    loaded_modules["devcontainer"]["postStartCommand"] = " && ".join(postStartCommands)
+
     return loaded_modules
 
 
-def main(selected_name: str, selected_modules: list(str)):
-    PROJECT_NAME = "test"
-    selected_image, image_scripts = get_selected_image(selected_name)
-    selected_modules = get_selected_modules(selected_modules)
-
+def concat_dockerfile(selected_image: str, selected_modules_data: str, image_scripts: str) -> str:
     copy_script_string = ""
     run_script_string = ""
-
     for script in image_scripts:
         copy_script_string += f"COPY scripts/{script} .\n"
         run_script_string += f"RUN ./scripts/{script}\n"
 
-    dockerfile=f"""FROM {selected_image}
+    environment_string = ""
+    for var in selected_modules_data["environment"]:
+        environment_string += f"{var}\n"
+
+    dockerfile_string = f"""FROM {selected_image}
 
 {copy_script_string}
 {run_script_string}
 # Passwordless sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+{environment_string}
 """
-    print(f"DOCKERFILE:\n{dockerfile}END OF DOCKERFILE\n")
+
+    return dockerfile_string
 
 
-    devcontainer=f"""{{
-    "name": "{PROJECT_NAME}",
-    "build": {{
-        "context": "..",
-        "dockerfile": "Dockerfile"
-    }},
-    {selected_modules}
-}}\n"""
-    print(f"DEVCONTAINER.JSON:\n{devcontainer} \nEND OF DEVCONTAINER.JSON")
+def concat_devcontainer(selected_modules_data: list) -> str:
+    devcontainer_dict = {
+        "name": "Project Name",
+        "build": {
+            "context": "..",
+            "dockerfile": "Dockerfile"
+        },
+        "mounts": selected_modules_data["devcontainer"].get("mounts", []),
+        "postCreateCommand": selected_modules_data["devcontainer"].get("postCreateCommand", ""),
+        "postStartCommand": selected_modules_data["devcontainer"].get("postStartCommand", ""),
+        "runArgs": selected_modules_data["devcontainer"].get("runArgs", []),
+        "features": selected_modules_data["devcontainer"].get("features", {}),
+        
+        "customizations": {
+            "vscode": {
+                "settings": selected_modules_data["devcontainer"].get("settings", {}),
+                "extensions": selected_modules_data["devcontainer"].get("extensions", [])
+            }
+        }
+    }
+
+    return json.dumps(devcontainer_dict, indent=4)
+
+
+
+def main(project_name: str, selected_name: str, selected_modules: list):
+    selected_image, image_scripts = get_selected_image(selected_name)
+    selected_modules_data = get_selected_modules(selected_modules)
+
+    dockerfile_string = concat_dockerfile(selected_image, selected_modules_data, image_scripts)
+    devcontainer_string = concat_devcontainer(selected_modules_data)
+    
+    return (dockerfile_string, devcontainer_string)
 
 
 if __name__ == "__main__":
-    #selected_image, image_scripts = get_selected_image("Ubuntu")
-    #selected_modules = get_selected_modules(["Intel Arc GPU", "Jupyter Notebook"])
+    dockerfile_string, devcontainer_string = main(project_name="Test", selected_name="Ubuntu", selected_modules=["SSH Agent", "Intel Arc GPU", "Python", "Jupyter Notebook"])
 
-    main(selected_name="Ubuntu", selected_modules=["Intel Arc GPU", "Python", "Jupyter Notebook"])
+    print(f"DOCKERFILE:\n{dockerfile_string}END OF DOCKERFILE")
+    print(f"DEVCONTAINER.JSON:\n{devcontainer_string}\nEND OF DEVCONTAINER.JSON")

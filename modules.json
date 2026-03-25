@@ -7,6 +7,30 @@
             "description": "Default attributes for all devcontainers",
             "devcontainer": {
                 "runArgs": [],
+                "mounts": [],
+                "postCreateCommand": "",
+                "postStartCommand": "",
+                "features": {},
+                "extensions": [],
+                "settings": {
+                    "workbench.colorTheme": "Default Dark Modern",
+                    "workbench.sideBar.location": "right"
+                }
+            },
+            "scripts": [],
+            "environment": []
+        },
+        {
+            "name": "SSH Agent",
+            "category": "Tools",
+            "description": "Attaching an SSH Agent to the devcontainer",
+            "devcontainer": {
+                "runArgs": [],
+                "mounts": [
+                    "source=/home/<USER>/.ssh/agent,target=/ssh-agent-dir,type=bind"
+                ],
+                "postCreateCommand": "",
+                "postStartCommand": "echo 'export SSH_AUTH_SOCK=$(ls /ssh-agent-dir/*.agent.* | head -1)' >> ~/.bashrc",
                 "features": {},
                 "extensions": [],
                 "settings": {
@@ -27,6 +51,9 @@
                     "--ipc=host",
                     "--shm-size=<RAM>"
                 ],
+                "mounts": [],
+                "postCreateCommand": "",
+                "postStartCommand": "",
                 "features": {},
                 "extensions": [],
                 "settings": {}
@@ -46,6 +73,9 @@
             "description": "Jupyter notebooks via pyenv with pip and venv",
             "devcontainer": {
                 "runArgs": [],
+                "mounts": [],
+                "postCreateCommand": "",
+                "postStartCommand": "",
                 "features": {
                     "ghcr.io/devcontainers/features/python:1": {
                         "version": "3.12"
@@ -77,6 +107,9 @@
             "description": "Applications for developing via a command line interface",
             "devcontainer": {
                 "runArgs": [],
+                "mounts": [],
+                "postCreateCommand": "",
+                "postStartCommand": "",
                 "features": {
                     "ghcr.io/devcontainers-extra/features/tmux-apt-get:1": {},
                     "ghcr.io/duduribeiro/devcontainer-features/neovim:1": {
@@ -98,6 +131,9 @@
             "description": "Python 3 via pyenv with pip and venv",
             "devcontainer": {
                 "runArgs": [],
+                "mounts": [],
+                "postCreateCommand": "",
+                "postStartCommand": "",
                 "features": {
                     "ghcr.io/devcontainers/features/python:1": {
                         "version": "3.12"
