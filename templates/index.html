@@ -67,6 +67,12 @@
             <button class="copy-btn" onclick="copyText('devcontainer-output', this)">Copy</button>
         </div>
         <pre><code id="devcontainer-output"></code></pre>
+
+        <div class="output-header">
+            <h2>setup.sh</h2>
+            <button class="copy-btn" onclick="copyText('setupscript-output', this)">Copy</button>
+        </div>
+        <pre><code id="setupscript-output"></code></pre>
     </div>
 </div>
 
@@ -146,6 +152,18 @@
             if (res.status === 200) {
                 document.getElementById('dockerfile-output').textContent = res.body.dockerfile;
                 document.getElementById('devcontainer-output').textContent = res.body.devcontainer;
+                
+                // Show or hide setup script output if empty
+                const setupEl = document.getElementById('setupscript-output');
+                if (res.body.setupscript && res.body.setupscript.trim().length > 0) {
+                    setupEl.textContent = res.body.setupscript;
+                    setupEl.parentElement.style.display = 'block';
+                    setupEl.parentElement.previousElementSibling.style.display = 'flex';
+                } else {
+                    setupEl.parentElement.style.display = 'none';
+                    setupEl.parentElement.previousElementSibling.style.display = 'none';
+                }
+
                 document.getElementById('output-container').style.display = 'block';
                 statusMsg.textContent = 'Success!';
                 statusMsg.style.color = 'green';

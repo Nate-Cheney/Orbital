@@ -132,7 +132,7 @@ def concat_devcontainer(selected_modules_data: dict) -> str:
     return json.dumps(devcontainer_dict, indent=4)
 
 def concat_setup_script(selected_modules_data: dict) -> str:
-    setup_script_string = ""
+    setup_script_string = "#!/bin/bash\n\n"
 
     for script in selected_modules_data["scripts"]:
         with open(f"scripts/{script}", "r") as file:
@@ -149,9 +149,17 @@ def main(project_name: str, selected_name: str, selected_modules: list):
     
     build_commands = get_build_commands(build_prerequisites) 
     
+    setup_script_string = concat_setup_script(selected_modules_data)
+    
+    if setup_script_string.strip() != "#!/bin/bash":
+        setup_cmd = "chmod +x ./.devcontainer/setup && ./.devcontainer/setup"
+        if selected_modules_data["devcontainer"]["postCreateCommand"]:
+            selected_modules_data["devcontainer"]["postCreateCommand"] += f" && {setup_cmd}"
+        else:
+            selected_modules_data["devcontainer"]["postCreateCommand"] = setup_cmd
+    
     dockerfile_string = concat_dockerfile(selected_image, selected_modules_data, build_commands)
     devcontainer_string = concat_devcontainer(selected_modules_data)
-    setup_script_string = concat_setup_script(selected_modules_data)
 
     return (dockerfile_string, devcontainer_string, setup_script_string)
 
