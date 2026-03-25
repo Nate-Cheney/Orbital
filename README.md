@@ -40,6 +40,6 @@ flask run --debug
 You can bypass the web app and use the backend script directly:
 
 ```bash
-python compile.py --project-name "My App" --image "Ubuntu" --modules "Python" "Jupyter Notebook"
+python3 compile.py --project-name "My App" --image "Ubuntu" --modules "Python" "Jupyter Notebook"
 ```
-*(Running `python compile.py --help` will show all available options).*
+*(Running `python3 compile.py --help` will show all available options).*
