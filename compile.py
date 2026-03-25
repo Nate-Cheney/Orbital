@@ -166,14 +166,23 @@ def main(project_name: str, selected_name: str, selected_modules: list):
 
 if __name__ == "__main__":
     import argparse
+    import sys
     
     parser = argparse.ArgumentParser(description="Generate Devcontainer Configurations")
     
     parser.add_argument("--project-name", "-p", default="My Devcontainer", help="Name of the project")
     parser.add_argument("--image", "-i", default="Ubuntu", help="Selected image name")
-    parser.add_argument("--modules", "-m", nargs="+", default=["SSH Agent", "CLI Dev Apps"], help="List of selected modules")
+    parser.add_argument("--modules", "-m", nargs="*", default=["SSH Agent", "CLI Dev Apps"], help="List of selected modules")
     
     args = parser.parse_args()
+    
+    if args.modules is not None and len(args.modules) == 0:
+        with open('modules.json', 'r') as f:
+            modules_data = json.load(f)
+        print("Available modules:")
+        for mod in modules_data.get("modules", []):
+            print(f"  - {mod.get('name')}: {mod.get('description', 'No description available')}")
+        sys.exit(0)
     
     dockerfile_string, devcontainer_string, setup_script_string = main(project_name=args.project_name, selected_name=args.image, selected_modules=args.modules)
 
