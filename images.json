@@ -5,13 +5,13 @@
             "name": "LaTeX",
             "image": "docker.io/texlive/texlive:latest",
             "remoteUser": "",
-            "scripts": ["prerequisite_debian.sh", "prerequisite_latex.sh"]
+            "build": ["debian.json", "latex.json"]
         },
         {
             "name": "Ubuntu",
             "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
             "remoteUser": "vscode",
-            "scripts": ["prerequisite_debian.sh"]
+            "build": ["debian.json"]
         }
     ]
 }
