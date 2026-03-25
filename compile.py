@@ -67,7 +67,7 @@ def get_selected_image(selected_name: str) -> tuple[str, list[str]]:
         images = json.load(file)
     
     selected_image = ""
-    image_scripts = []
+    build_prerequisites = []
 
     for image in images["images"]:
         if image.get("name") == selected_name:
@@ -78,7 +78,7 @@ def get_selected_image(selected_name: str) -> tuple[str, list[str]]:
     return (selected_image, build_prerequisites)
 
 
-def get_build_commands(build_prerequisites: list(str)) -> str:
+def get_build_commands(build_prerequisites: list[str]) -> str:
     build_commands = []
 
     for prereq in build_prerequisites:

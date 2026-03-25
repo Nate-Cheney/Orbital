@@ -53,6 +53,8 @@ def generate():
             "dockerfile": dockerfile_string,
             "devcontainer": devcontainer_string
         })
+    except FileNotFoundError as e:
+        return jsonify({"error": f"Missing configuration file: {e.filename}"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
