@@ -4,7 +4,18 @@ Orbital is a lightweight, customizable application that generates `Dockerfile`, 
 
 It allows you to rapidly bootstrap a Devcontainer by dynamically combining base images with modular tools and extensions.
 
-## File Structure
+## Output Structure
+
+As stated above, Orbital generates a `Dockerfile`, `devcontainer.json` and a `setup.sh`. These files are ALL expected to be placed within the `.devcontainer/` directory in your project's root. Additional files such as a `requirements.txt` (required when using the Python and/or Jupyter modules) are also expected to be in the `.devcontainer/` directory.
+
+Project root
+|--.devcontainer/
+|  |--Dockerfile
+|  |--devcontainer.json
+|  |--setup.sh
+|  |--requirements.txt (optional)
+
+## Orbital - File Structure
 
 *   **`build/`** - Contains declarative JSON build steps required by the base images.
 *   **`data/`** - Contains images.json and modules.json which define available base OS images and available modular add ons.
@@ -54,3 +65,4 @@ You can bypass the web app and use the backend script directly:
 python3 compile.py --project-name "My App" --image "Ubuntu" --modules "Python" "Jupyter Notebook"
 ```
 *(Running `python3 compile.py --help` will show all available options).*
+
