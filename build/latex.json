@@ -1,5 +1,4 @@
 {
-    "version": "0.1",
     "build_commands": [
         "RUN tlmgr update --self && tlmgr update --all"
     ]
