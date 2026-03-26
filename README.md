@@ -8,12 +8,14 @@ It allows you to rapidly bootstrap a Devcontainer by dynamically combining base 
 
 As stated above, Orbital generates a `Dockerfile`, `devcontainer.json` and a `setup.sh`. These files are ALL expected to be placed within the `.devcontainer/` directory in your project's root. Additional files such as a `requirements.txt` (required when using the Python and/or Jupyter modules) are also expected to be in the `.devcontainer/` directory.
 
+```
 Project root
 |--.devcontainer/
 |  |--Dockerfile
 |  |--devcontainer.json
 |  |--setup.sh
 |  |--requirements.txt (optional)
+```
 
 ## Orbital - File Structure
 
