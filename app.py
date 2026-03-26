@@ -37,7 +37,7 @@ def generate():
         return jsonify({"error": "An image name must be provided."}), 400
         
     try:
-        dockerfile_string, devcontainer_string = compile.main(
+        dockerfile_string, devcontainer_string, setup_script_string = compile.main(
             project_name=project_name, 
             selected_name=selected_name, 
             selected_modules=selected_modules
@@ -51,7 +51,8 @@ def generate():
         
         return jsonify({
             "dockerfile": dockerfile_string,
-            "devcontainer": devcontainer_string
+            "devcontainer": devcontainer_string,
+            "setupscript": setup_script_string
         })
     except FileNotFoundError as e:
         return jsonify({"error": f"Missing configuration file: {e.filename}"}), 500

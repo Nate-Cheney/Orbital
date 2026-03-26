@@ -131,7 +131,7 @@ def concat_devcontainer(selected_modules_data: dict, remote_user: str) -> str:
     return json.dumps(devcontainer_dict, indent=4)
 
 def concat_setup_script(selected_modules_data: dict) -> str:
-    setup_script_string = ""
+    setup_script_string = "#!/bin/bash\n\n"
 
     for script in selected_modules_data["scripts"]:
         with open(f"scripts/{script}", "r") as file:
@@ -148,24 +148,47 @@ def main(project_name: str, selected_name: str, selected_modules: list):
     selected_modules_data = get_selected_modules_data(selected_modules)
     build_commands = get_build_commands(build_prerequisites) 
     
+<<<<<<< HEAD
     # Concatenate output strings
     dockerfile_string = concat_dockerfile(selected_image, selected_modules_data, build_commands)
     devcontainer_string = concat_devcontainer(selected_modules_data, remote_user)
     setup_script_string = concat_setup_script(selected_modules_data)
+=======
+    setup_script_string = concat_setup_script(selected_modules_data)
+    
+    if setup_script_string.strip() != "#!/bin/bash":
+        setup_cmd = "chmod +x ./.devcontainer/setup && ./.devcontainer/setup"
+        if selected_modules_data["devcontainer"]["postCreateCommand"]:
+            selected_modules_data["devcontainer"]["postCreateCommand"] += f" && {setup_cmd}"
+        else:
+            selected_modules_data["devcontainer"]["postCreateCommand"] = setup_cmd
+    
+    dockerfile_string = concat_dockerfile(selected_image, selected_modules_data, build_commands)
+    devcontainer_string = concat_devcontainer(selected_modules_data)
+>>>>>>> 2f75c56f561dc1111a87c96a9809916ca891b05c
 
     return (dockerfile_string, devcontainer_string, setup_script_string)
 
 
 if __name__ == "__main__":
     import argparse
+    import sys
     
     parser = argparse.ArgumentParser(description="Generate Devcontainer Configurations")
     
     parser.add_argument("--project-name", "-p", default="My Devcontainer", help="Name of the project")
     parser.add_argument("--image", "-i", default="Ubuntu", help="Selected image name")
-    parser.add_argument("--modules", "-m", nargs="+", default=["SSH Agent", "CLI Dev Apps"], help="List of selected modules")
+    parser.add_argument("--modules", "-m", nargs="*", default=["SSH Agent", "CLI Dev Apps"], help="List of selected modules")
     
     args = parser.parse_args()
+    
+    if args.modules is not None and len(args.modules) == 0:
+        with open('modules.json', 'r') as f:
+            modules_data = json.load(f)
+        print("Available modules:")
+        for mod in modules_data.get("modules", []):
+            print(f"  - {mod.get('name')}: {mod.get('description', 'No description available')}")
+        sys.exit(0)
     
     dockerfile_string, devcontainer_string, setup_script_string = main(project_name=args.project_name, selected_name=args.image, selected_modules=args.modules)
 
