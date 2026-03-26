@@ -152,7 +152,7 @@ def main(project_name: str, selected_name: str, selected_modules: list):
     setup_script_string = concat_setup_script(selected_modules_data)
     
     if setup_script_string.strip() != "#!/bin/bash":
-        setup_cmd = "chmod +x ./.devcontainer/setup && ./.devcontainer/setup"
+        setup_cmd = "chmod +x ./.devcontainer/setup.sh && ./.devcontainer/setup.sh"
         if selected_modules_data["devcontainer"]["postCreateCommand"]:
             selected_modules_data["devcontainer"]["postCreateCommand"] += f" && {setup_cmd}"
         else:
