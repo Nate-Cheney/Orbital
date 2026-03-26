@@ -21,7 +21,7 @@ def get_selected_modules_data(selected_modules: list[str]) -> dict:
     postCreateCommands = [] 
     postStartCommands = []
 
-    with open("modules.json") as file:
+    with open("data/modules.json") as file:
         modules = json.load(file)
 
     for module in modules["modules"]:
@@ -63,7 +63,7 @@ def get_selected_modules_data(selected_modules: list[str]) -> dict:
 
 
 def get_selected_image_data(selected_name: str) -> tuple[str, str, list[str]]:
-    with open("images.json", "r") as file:
+    with open("data/images.json", "r") as file:
         images = json.load(file)
     
     for image in images["images"]:
@@ -148,12 +148,7 @@ def main(project_name: str, selected_name: str, selected_modules: list):
     selected_modules_data = get_selected_modules_data(selected_modules)
     build_commands = get_build_commands(build_prerequisites) 
     
-<<<<<<< HEAD
     # Concatenate output strings
-    dockerfile_string = concat_dockerfile(selected_image, selected_modules_data, build_commands)
-    devcontainer_string = concat_devcontainer(selected_modules_data, remote_user)
-    setup_script_string = concat_setup_script(selected_modules_data)
-=======
     setup_script_string = concat_setup_script(selected_modules_data)
     
     if setup_script_string.strip() != "#!/bin/bash":
@@ -164,8 +159,7 @@ def main(project_name: str, selected_name: str, selected_modules: list):
             selected_modules_data["devcontainer"]["postCreateCommand"] = setup_cmd
     
     dockerfile_string = concat_dockerfile(selected_image, selected_modules_data, build_commands)
-    devcontainer_string = concat_devcontainer(selected_modules_data)
->>>>>>> 2f75c56f561dc1111a87c96a9809916ca891b05c
+    devcontainer_string = concat_devcontainer(selected_modules_data, remote_user)
 
     return (dockerfile_string, devcontainer_string, setup_script_string)
 
@@ -183,7 +177,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if args.modules is not None and len(args.modules) == 0:
-        with open('modules.json', 'r') as f:
+        with open("data/modules.json", "r") as f:
             modules_data = json.load(f)
         print("Available modules:")
         for mod in modules_data.get("modules", []):
