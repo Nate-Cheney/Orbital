@@ -62,20 +62,18 @@ def get_selected_modules_data(selected_modules: list[str]) -> dict:
     return loaded_modules
 
 
-def get_selected_image(selected_name: str) -> tuple[str, list[str]]:
+def get_selected_image_data(selected_name: str) -> tuple[str, str, list[str]]:
     with open("images.json", "r") as file:
         images = json.load(file)
     
-    selected_image = ""
-    build_prerequisites = []
-
     for image in images["images"]:
         if image.get("name") == selected_name:
             selected_image = image.get("image", "")
+            remote_user = image.get("remoteUser", "") 
             build_prerequisites = image.get("build", [])
             break
 
-    return (selected_image, build_prerequisites)
+    return (selected_image, remote_user, build_prerequisites)
 
 
 def get_build_commands(build_prerequisites: list[str]) -> str:
@@ -108,13 +106,14 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
     return dockerfile_string
 
 
-def concat_devcontainer(selected_modules_data: dict) -> str:
+def concat_devcontainer(selected_modules_data: dict, remote_user: str) -> str:
     devcontainer_dict = {
         "name": "Project Name",
         "build": {
             "context": "..",
             "dockerfile": "Dockerfile"
         },
+        "remoteUser": remote_user,
         "mounts": selected_modules_data["devcontainer"].get("mounts", []),
         "postCreateCommand": selected_modules_data["devcontainer"].get("postCreateCommand", ""),
         "postStartCommand": selected_modules_data["devcontainer"].get("postStartCommand", ""),
@@ -144,13 +143,14 @@ def concat_setup_script(selected_modules_data: dict) -> str:
 
 
 def main(project_name: str, selected_name: str, selected_modules: list):
-    selected_image, build_prerequisites = get_selected_image(selected_name)
+    # Get necessary info
+    selected_image, remote_user, build_prerequisites = get_selected_image_data(selected_name)
     selected_modules_data = get_selected_modules_data(selected_modules)
-    
     build_commands = get_build_commands(build_prerequisites) 
     
+    # Concatenate output strings
     dockerfile_string = concat_dockerfile(selected_image, selected_modules_data, build_commands)
-    devcontainer_string = concat_devcontainer(selected_modules_data)
+    devcontainer_string = concat_devcontainer(selected_modules_data, remote_user)
     setup_script_string = concat_setup_script(selected_modules_data)
 
     return (dockerfile_string, devcontainer_string, setup_script_string)
