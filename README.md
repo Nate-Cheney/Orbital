@@ -18,15 +18,11 @@ You can run Orbital either through the Web UI or via the Command Line Interface.
 ### 1. Web UI (Recommended)
 
 **Using Docker**
-1. Build the container image:
+1. Run the server on port 5000:
    ```bash
-   docker build -t orbital-webapp .
+   docker run -p 5000:5000 ghcr.io/nate-cheney/orbital:master 
    ```
-2. Run the server on port 5000:
-   ```bash
-   docker run -p 5000:5000 orbital-webapp
-   ```
-3. Open `http://localhost:5000` in your browser.
+2. Open `http://localhost:5000` in your browser.
 
 **Using Python (Virtual Environment)**
 ```bash
