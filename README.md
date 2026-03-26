@@ -4,9 +4,8 @@ Orbital is a lightweight, customizable web application and CLI tool that generat
 
 ## File Structure
 
-*   **`images.json`** - Defines the available base OS images and their required build prerequisites.
-*   **`modules.json`** - Defines modular add-ons (like Python, Jupyter, or Hardware drivers) alongside their necessary VS Code extensions, scripts, and arguments.
 *   **`build/`** - Contains declarative JSON build steps required by the base images.
+*   **`data/`** - Contains images.json and modules.json which define available base OS images and available modular add ons.
 *   **`scripts/`** - Shell scripts that are injected into the Docker setup process for specific modules.
 *   **`compile.py`** - The core Python engine that parses the JSON files to orchestrate and output the raw Devcontainer configurations. 
 *   **`app.py`** & **`templates/`** - A Flask web application that provides a graphic interface over the python backend.
@@ -23,6 +22,20 @@ You can run Orbital either through the Web UI or via the Command Line Interface.
    docker run -p 5000:5000 ghcr.io/nate-cheney/orbital:master 
    ```
 2. Open `http://localhost:5000` in your browser.
+
+**Using Docker Compose**
+1. Create a `docker-compose.yaml`:
+```docker-compose.yaml
+services:
+    orbital:
+        container_name: orbital
+        image: ghcr.io/nate-cheney/orbital:latest
+        ports:
+         - 5000:5000 
+        restart: unless-stopped
+```
+2. Run `docker compose pull && docker compose pull -d`.
+3. Open `http://localhost:5000` in your browser.
 
 **Using Python (Virtual Environment)**
 ```bash
