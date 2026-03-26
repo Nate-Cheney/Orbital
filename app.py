@@ -11,10 +11,10 @@ def index():
 @app.route("/api/options", methods=["GET"])
 def get_options():
     try:
-        with open("images.json", "r") as file:
+        with open("data/images.json", "r") as file:
             images_data = json.load(file)
         
-        with open("modules.json", "r") as file:
+        with open("data/modules.json", "r") as file:
             modules_data = json.load(file)
         
         options = {
