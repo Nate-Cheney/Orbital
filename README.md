@@ -1,8 +1,11 @@
 # Orbital - Devcontainer Generator
 
-Orbital is a lightweight, customizable application that generates `Dockerfile`, `devcontainer.json` and `setup.sh` configurations. 
+Orbital is a lightweight application that generates `Dockerfile`, `devcontainer.json` and `setup.sh` configurations. 
 
 It allows you to rapidly bootstrap a Devcontainer by dynamically combining base images with modular tools and extensions.
+
+<img width="883" height="485" alt="image" src="https://github.com/user-attachments/assets/8d62b7d9-dae5-4759-8e90-bcc17634f08d" />
+
 
 ## Output Structure
 
