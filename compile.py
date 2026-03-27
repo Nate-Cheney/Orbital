@@ -87,11 +87,10 @@ def get_build_commands(build_prerequisites: list[str]) -> str:
     return "\n".join(build_commands)
 
 
-
 def concat_dockerfile(selected_image: str, selected_modules_data: dict, build_commands: str) -> str:
     environment_string = ""
     for var in selected_modules_data["environment"]:
-        environment_string += f"{var}\n"
+        environment_string += f"ENV {var}\n"
 
     dockerfile_string = f"""FROM {selected_image}
 
