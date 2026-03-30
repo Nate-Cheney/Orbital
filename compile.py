@@ -158,7 +158,7 @@ def concat_devcontainer(selected_module_data: dict, remote_user: str) -> str:
     return json.dumps(devcontainer_dict, indent=4)
 
 
-def concat_setup_script(setup_scripts) -> str:
+def concat_setup_script(setup_scripts: list) -> str:
     setup_script_string = "#!/bin/bash\nset -e\n\n"
 
     for script in setup_scripts:
