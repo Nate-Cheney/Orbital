@@ -16,6 +16,7 @@ if [ ! -d ".venv/" ]; then
 fi
 
 source ".venv/bin/activate"
+
 echo "Installing packages..."
 python3 -m pip install --upgrade pip 
 pip3 install -r .devcontainer/requirements.txt
