@@ -2,14 +2,15 @@
 # Intel Arc GPU Setup   #
 #########################
 
+echo "Installing software-properties-common..."
 sudo apt-get update
 sudo apt-get install -y software-properties-common
 
-# Add Intel's official Canonical PPA for Ubuntu 24.04 Battlemage drivers
+echo "Adding Intel's repository for Battlemage drivers (Canonical dist)..."
 sudo add-apt-repository -y ppa:kobuk-team/intel-graphics 
 sudo apt-get update
 
-# Upgrade underlying DRM libraries and install the modern Xe2 packages
+echo "Updating existing drivers and installing Xe2 drivers..."
 sudo apt-get upgrade -y
 sudo apt-get install -y \
     intel-opencl-icd \
