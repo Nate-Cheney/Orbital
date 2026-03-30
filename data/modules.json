@@ -4,6 +4,7 @@
             "name": "Default",
             "category": "Default",
             "description": "Default attributes for all devcontainers",
+            "dependencies": [],
             "devcontainer": {
                 "runArgs": [],
                 "mounts": [],
@@ -23,6 +24,7 @@
             "name": "SSH Agent",
             "category": "Tools",
             "description": "Attaching an SSH Agent to the devcontainer",
+            "dependencies": [],
             "devcontainer": {
                 "runArgs": [],
                 "mounts": [
@@ -44,6 +46,7 @@
             "name": "Intel Arc GPU",
             "category": "Hardware",
             "description": "Attaching an Intel Arc GPU & installing necessary drivers",
+            "dependencies": [],
             "devcontainer": {
                 "runArgs": [
                     "--device=/dev/dri:/dev/dri",
@@ -70,6 +73,7 @@
             "name": "Jupyter Notebook",
             "category": "Languages",
             "description": "Jupyter notebooks via pyenv with pip and venv",
+            "dependencies": [],
             "devcontainer": {
                 "runArgs": [],
                 "mounts": [],
@@ -104,6 +108,7 @@
             "name": "CLI Dev Apps",
             "category": "Tools",
             "description": "Applications for developing via a command line interface",
+            "dependencies": [],
             "devcontainer": {
                 "runArgs": [],
                 "mounts": [],
@@ -128,6 +133,7 @@
             "name": "Python",
             "category": "Languages",
             "description": "Python 3 via pyenv with pip and venv",
+            "dependencies": [],
             "devcontainer": {
                 "runArgs": [],
                 "mounts": [],
