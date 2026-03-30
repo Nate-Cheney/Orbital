@@ -71,3 +71,7 @@ python3 compile.py --project-name "My App" --image "Ubuntu" --modules "Python" "
 ```
 *(Running `python3 compile.py --help` will show all available options).*
 
+## To Do
+
+- [ ] Improve module parsing by adding a 'depends_on' attribute. This will ensure that install steps are not repeated. (e.g. Jupyter Notebook depends on Python)
+
