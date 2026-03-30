@@ -4,7 +4,6 @@
             "name": "Default",
             "category": "Default",
             "description": "Default attributes for all devcontainers",
-            "dependencies": [],
             "devcontainer": {
                 "runArgs": [],
                 "mounts": [],
@@ -17,14 +16,14 @@
                     "workbench.sideBar.location": "right"
                 }
             },
-            "scripts": [],
-            "environment": []
+            "environment": [],
+            "module_dependencies": [],
+            "scripts": []
         },
         {
             "name": "SSH Agent",
             "category": "Tools",
             "description": "Attaching an SSH Agent to the devcontainer",
-            "dependencies": [],
             "devcontainer": {
                 "runArgs": [],
                 "mounts": [
@@ -39,14 +38,14 @@
                     "workbench.sideBar.location": "right"
                 }
             },
-            "scripts": [],
-            "environment": []
+            "environment": [],
+            "module_dependencies": [],
+            "scripts": []
         },
         {
             "name": "Intel Arc GPU",
             "category": "Hardware",
             "description": "Attaching an Intel Arc GPU & installing necessary drivers",
-            "dependencies": [],
             "devcontainer": {
                 "runArgs": [
                     "--device=/dev/dri:/dev/dri",
@@ -60,20 +59,20 @@
                 "extensions": [],
                 "settings": {}
             },
-            "scripts": [
-                "install_arc_gpu.sh"
-            ],
             "environment": [
                 "SYCL_DEVICE_FILTER=level_zero:gpu",
                 "ZES_ENABLE_SYSMAN=0",
                 "SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=1"
-            ]
+            ],
+            "module_dependencies": [],
+            "scripts": [
+                "install_arc_gpu.sh"
+            ]            
         },
         {
             "name": "Jupyter Notebook",
             "category": "Languages",
             "description": "Jupyter notebooks via pyenv with pip and venv",
-            "dependencies": [],
             "devcontainer": {
                 "runArgs": [],
                 "mounts": [],
@@ -89,7 +88,7 @@
                     "ms-toolsai.vscode-jupyter-cell-tags",
                     "ms-toolsai.jupyter-keymap",
                     "ms-toolsai.jupyter-renderers",
-                    "ms-toolsai.vscode-jupyter-slideshow",
+            "ms-toolsai.vscode-jupyter-slideshow",
                     "ms-python.vscode-pylance",
                     "ms-python.python",
                     "ms-python.debugpy",
@@ -99,16 +98,18 @@
                     "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python"
                 }
             },
+            "environment": [],
+            "module_dependencies": [
+                "Python"
+            ],
             "scripts": [
                 "install_jupyter.sh"
-            ],
-            "environment": []
+            ]
         },
         {
             "name": "CLI Dev Apps",
             "category": "Tools",
             "description": "Applications for developing via a command line interface",
-            "dependencies": [],
             "devcontainer": {
                 "runArgs": [],
                 "mounts": [],
@@ -123,17 +124,17 @@
                 "extensions": [],
                 "settings": {}
             },
+            "environment": [],
+            "module_dependencies": [],
             "scripts": [
                 "install_nvim.sh",
                 "install_tmux.sh"
-            ],
-            "environment": []
+            ]
         },
         {
             "name": "Python",
             "category": "Languages",
             "description": "Python 3 via pyenv with pip and venv",
-            "dependencies": [],
             "devcontainer": {
                 "runArgs": [],
                 "mounts": [],
@@ -152,10 +153,11 @@
                     "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python"
                 }
             },
+            "environment": [],
+            "module_dependencies": [],
             "scripts": [
                 "install_python.sh"
-            ],
-            "environment": []
+            ]
         }
     ]
 }

@@ -1,10 +1,12 @@
 import json
 
 
-def get_selected_modules_data(selected_modules: list[str]) -> dict:
+def extract_selected_module_data(selected_modules: list[str]) -> dict:
     if "Default" not in selected_modules:
         selected_modules.append("Default")  # Ensure default attributes are applied 
-    loaded_modules = {
+    
+    # Initialize variables
+    loaded_module_data = {
         "devcontainer": {
             "runArgs": [],
             "mounts": [],
@@ -14,10 +16,10 @@ def get_selected_modules_data(selected_modules: list[str]) -> dict:
             "extensions": [],
             "settings": {}
         },
-        "scripts": [],
-        "environment": []
+        "environment": [],
+        "module_dependencies": [],
+        "scripts": []
     }
-
     postCreateCommands = [] 
     postStartCommands = []
 
@@ -38,31 +40,33 @@ def get_selected_modules_data(selected_modules: list[str]) -> dict:
                 postStartCommands.append(startCmd)
 
             # Extend lists 
-            loaded_modules["devcontainer"]["runArgs"].extend(dev_config.get("runArgs", []))
-            loaded_modules["devcontainer"]["extensions"].extend(dev_config.get("extensions", []))
-            loaded_modules["devcontainer"]["mounts"].extend(dev_config.get("mounts", []))
-            loaded_modules["scripts"].extend(module.get("scripts", []))
-            loaded_modules["environment"].extend(module.get("environment", []))
+            loaded_module_data["devcontainer"]["runArgs"].extend(dev_config.get("runArgs", []))
+            loaded_module_data["devcontainer"]["extensions"].extend(dev_config.get("extensions", []))
+            loaded_module_data["devcontainer"]["mounts"].extend(dev_config.get("mounts", []))
+            loaded_module_data["environment"].extend(module.get("environment", []))
+            loaded_module_data["module_dependencies"].extend(module.get("module_dependencies", []))
+            loaded_module_data["scripts"].extend(module.get("scripts", []))
             
             # Update dictionaries 
-            loaded_modules["devcontainer"]["features"].update(dev_config.get("features", {}))
-            loaded_modules["devcontainer"]["settings"].update(dev_config.get("settings", {}))
+            loaded_module_data["devcontainer"]["features"].update(dev_config.get("features", {}))
+            loaded_module_data["devcontainer"]["settings"].update(dev_config.get("settings", {}))
 
     # Deduplicate items
-    loaded_modules["devcontainer"]["runArgs"] = list(dict.fromkeys(loaded_modules["devcontainer"]["runArgs"]))
-    loaded_modules["devcontainer"]["extensions"] = list(dict.fromkeys(loaded_modules["devcontainer"]["extensions"]))
-    loaded_modules["devcontainer"]["mounts"] = list(dict.fromkeys(loaded_modules["devcontainer"]["mounts"]))
-    loaded_modules["scripts"] = list(dict.fromkeys(loaded_modules["scripts"]))
-    loaded_modules["environment"] = list(dict.fromkeys(loaded_modules["environment"]))
-    
+    loaded_module_data["devcontainer"]["runArgs"] = list(dict.fromkeys(loaded_module_data["devcontainer"]["runArgs"]))
+    loaded_module_data["devcontainer"]["extensions"] = list(dict.fromkeys(loaded_module_data["devcontainer"]["extensions"]))
+    loaded_module_data["devcontainer"]["mounts"] = list(dict.fromkeys(loaded_module_data["devcontainer"]["mounts"]))
+    loaded_module_data["environment"] = list(dict.fromkeys(loaded_module_data["environment"]))
+    loaded_module_data["module_dependencies"] = list(dict.fromkeys(loaded_module_data["module_dependencies"]))
+    loaded_module_data["scripts"] = list(dict.fromkeys(loaded_module_data["scripts"]))
+
     # Join command lists
-    loaded_modules["devcontainer"]["postCreateCommand"] = " && ".join(postCreateCommands)
-    loaded_modules["devcontainer"]["postStartCommand"] = " && ".join(postStartCommands)
+    loaded_module_data["devcontainer"]["postCreateCommand"] = " && ".join(postCreateCommands)
+    loaded_module_data["devcontainer"]["postStartCommand"] = " && ".join(postStartCommands)
 
-    return loaded_modules
+    return loaded_module_data
 
 
-def get_selected_image_data(selected_name: str) -> tuple[str, str, list[str]]:
+def extract_selected_image_data(selected_name: str) -> tuple[str, str, list[str]]:
     with open("data/images.json", "r") as file:
         images = json.load(file)
     
@@ -87,9 +91,33 @@ def get_build_commands(build_prerequisites: list[str]) -> str:
     return "\n".join(build_commands)
 
 
-def concat_dockerfile(selected_image: str, selected_modules_data: dict, build_commands: str) -> str:
+def get_setup_scripts(selected_module_data: dict) -> list[str]:
+    setup_scripts = []
+
+    with open("data/modules.json") as file:
+        data = json.load(file)
+        scripts_map = {m["name"]: m["scripts"] for m in data["modules"]}
+
+    for dependency in selected_module_data.get("module_dependencies", []):
+        # Get the list of scripts for this dependency name
+        dep_scripts = scripts_map.get(dependency, [])
+        
+        for script in dep_scripts:
+            # Avoid duplicates from other dependencies or the current module
+            if script not in setup_scripts:
+                setup_scripts.append(script)
+
+    # Add the selected module's own scripts at the end
+    for script in selected_module_data["scripts"]:
+        if script not in setup_scripts:
+            setup_scripts.append(script)
+
+    return setup_scripts
+
+
+def concat_dockerfile(selected_image: str, selected_module_data: dict, build_commands: str) -> str:
     environment_string = ""
-    for var in selected_modules_data["environment"]:
+    for var in selected_module_data["environment"]:
         environment_string += f"ENV {var}\n"
 
     dockerfile_string = f"""FROM {selected_image}
@@ -105,7 +133,7 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
     return dockerfile_string
 
 
-def concat_devcontainer(selected_modules_data: dict, remote_user: str) -> str:
+def concat_devcontainer(selected_module_data: dict, remote_user: str) -> str:
     devcontainer_dict = {
         "name": "Project Name",
         "build": {
@@ -113,26 +141,28 @@ def concat_devcontainer(selected_modules_data: dict, remote_user: str) -> str:
             "dockerfile": "Dockerfile"
         },
         "remoteUser": remote_user,
-        "mounts": selected_modules_data["devcontainer"].get("mounts", []),
-        "postCreateCommand": selected_modules_data["devcontainer"].get("postCreateCommand", ""),
-        "postStartCommand": selected_modules_data["devcontainer"].get("postStartCommand", ""),
-        "runArgs": selected_modules_data["devcontainer"].get("runArgs", []),
-        "features": selected_modules_data["devcontainer"].get("features", {}),
+        "mounts": selected_module_data["devcontainer"].get("mounts", []),
+        "postCreateCommand": selected_module_data["devcontainer"].get("postCreateCommand", ""),
+        "postStartCommand": selected_module_data["devcontainer"].get("postStartCommand", ""),
+        "runArgs": selected_module_data["devcontainer"].get("runArgs", []),
+        "features": selected_module_data["devcontainer"].get("features", {}),
         
         "customizations": {
             "vscode": {
-                "settings": selected_modules_data["devcontainer"].get("settings", {}),
-                "extensions": selected_modules_data["devcontainer"].get("extensions", [])
+                "settings": selected_module_data["devcontainer"].get("settings", {}),
+                "extensions": selected_module_data["devcontainer"].get("extensions", [])
             }
         }
     }
 
     return json.dumps(devcontainer_dict, indent=4)
 
-def concat_setup_script(selected_modules_data: dict) -> str:
+
+def concat_setup_script(setup_scripts) -> str:
     setup_script_string = "#!/bin/bash\nset -e\n\n"
 
-    for script in selected_modules_data["scripts"]:
+    for script in setup_scripts:
+    # for script in selected_module_data["scripts"]:
         with open(f"scripts/{script}", "r") as file:
             script_contents = file.read()
         
@@ -142,23 +172,26 @@ def concat_setup_script(selected_modules_data: dict) -> str:
 
 
 def main(project_name: str, selected_name: str, selected_modules: list):
-    # Get necessary info
-    selected_image, remote_user, build_prerequisites = get_selected_image_data(selected_name)
-    selected_modules_data = get_selected_modules_data(selected_modules)
+    # Extract necessary info based on input
+    selected_image, remote_user, build_prerequisites = extract_selected_image_data(selected_name)
+    selected_module_data = extract_selected_module_data(selected_modules)
+
+    # Get info based on extracted info
     build_commands = get_build_commands(build_prerequisites) 
-    
+    setup_scripts = get_setup_scripts(selected_module_data)
+
     # Concatenate output strings
-    setup_script_string = concat_setup_script(selected_modules_data)
+    setup_script_string = concat_setup_script(setup_scripts)
     
     if setup_script_string.strip() != "#!/bin/bash":
         setup_cmd = "chmod +x ./.devcontainer/setup.sh && ./.devcontainer/setup.sh"
-        if selected_modules_data["devcontainer"]["postCreateCommand"]:
-            selected_modules_data["devcontainer"]["postCreateCommand"] += f" && {setup_cmd}"
+        if selected_module_data["devcontainer"]["postCreateCommand"]:
+            selected_module_data["devcontainer"]["postCreateCommand"] += f" && {setup_cmd}"
         else:
-            selected_modules_data["devcontainer"]["postCreateCommand"] = setup_cmd
+            selected_module_data["devcontainer"]["postCreateCommand"] = setup_cmd
     
-    dockerfile_string = concat_dockerfile(selected_image, selected_modules_data, build_commands)
-    devcontainer_string = concat_devcontainer(selected_modules_data, remote_user)
+    dockerfile_string = concat_dockerfile(selected_image, selected_module_data, build_commands)
+    devcontainer_string = concat_devcontainer(selected_module_data, remote_user)
 
     return (dockerfile_string, devcontainer_string, setup_script_string)
 
